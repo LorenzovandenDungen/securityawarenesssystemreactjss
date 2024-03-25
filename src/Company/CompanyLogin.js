@@ -11,18 +11,10 @@ function CompanyLogin() {
   const handleLogin = async (event) => {
     event.preventDefault();
     try {
-      const userCredential = await signInWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
-      // Signed in
-      const user = userCredential.user;
-      // Navigate to the dashboard page
+      await signInWithEmailAndPassword(auth, email, password);
       navigate("/companypage");
     } catch (error) {
-      const errorMessage = error.message;
-      console.log(errorMessage);
+      console.log(error.message);
     }
   };
 
@@ -31,19 +23,9 @@ function CompanyLogin() {
       <h2>Company Login</h2>
       <form onSubmit={handleLogin}>
         <label htmlFor="email">Email</label>
-        <input
-          type="email"
-          id="email"
-          value={email}
-          onChange={(event) => setEmail(event.target.value)}
-        />
+        <input type="email" id="email" value={email} onChange={(event) => setEmail(event.target.value)} />
         <label htmlFor="password">Password</label>
-        <input
-          type="password"
-          id="password"
-          value={password}
-          onChange={(event) => setPassword(event.target.value)}
-        />
+        <input type="password" id="password" value={password} onChange={(event) => setPassword(event.target.value)} />
         <button type="submit">Log in</button>
       </form>
     </div>

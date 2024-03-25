@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter as Router, Route, Switch, Routes } from "react-router-dom";
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import Login from "./Login";
 import CompanyLoginPage from "./Company/CompanyLogin";
 import AdminLoginPage from "./Admin/Login";
