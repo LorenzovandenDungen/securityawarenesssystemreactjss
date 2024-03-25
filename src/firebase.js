@@ -17,6 +17,7 @@ import {
 import { getFunctions } from "firebase/functions";
 import { getDatabase } from "firebase/database";
 
+
 // Firebase configuration from your environment variables
 const firebaseConfig = {
   apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
@@ -57,20 +58,30 @@ const logoutUser = async () => {
   await signOut(auth);
   console.log('User signed out');
 };
+
 const getUsers = async () => {
-  // Assuming you're fetching users from a Firestore collection named "users"
-  const usersCol = collection(db, "users");
-  const userSnapshot = await getDocs(usersCol);
-  const userList = userSnapshot.docs.map(doc => doc.data());
-  return userList;
+  try {
+    const usersCol = collection(db, "users");
+    const userSnapshot = await getDocs(usersCol);
+    const usersList = userSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    return usersList;
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    throw new Error("Failed to fetch users");
+  }
 };
 
-// Define getTrainings function
+
 const getTrainings = async () => {
-  const trainingsCol = collection(db, "trainings");
-  const trainingSnapshot = await getDocs(trainingsCol);
-  const trainingList = trainingSnapshot.docs.map(doc => doc.data());
-  return trainingList;
+  try {
+    const trainingsCol = collection(db, "trainings");
+    const trainingSnapshot = await getDocs(trainingsCol);
+    const trainingsList = trainingSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    return trainingsList;
+  } catch (error) {
+    console.error("Error fetching trainings:", error);
+    throw new Error("Failed to fetch trainings");
+  }
 };
 
 // Define updateUserRole function
