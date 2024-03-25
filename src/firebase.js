@@ -12,11 +12,11 @@ import {
   doc,
   updateDoc,
   deleteDoc,
-  getDoc
+  getDocs,
+  setDoc
 } from "firebase/firestore";
 import { getFunctions } from "firebase/functions";
 import { getDatabase } from "firebase/database";
-
 
 // Firebase configuration from your environment variables
 const firebaseConfig = {
@@ -31,7 +31,7 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-// Initialize services
+// Initialize Firebase services
 const auth = getAuth(app);
 const db = getFirestore(app);
 const functions = getFunctions(app);
@@ -39,50 +39,62 @@ const functions = getFunctions(app);
 // Google Auth Provider
 const googleProvider = new GoogleAuthProvider();
 
-// Function to create a user
-const createUser = async (email, password, additionalData) => {
+/**
+ * Creates a new user with email and password and stores additional user data in Firestore.
+ */
+async function createUser(email, password, additionalData = {}) {
   try {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     console.log('User created with email:', userCredential.user.email);
-    // Add additional user data to Firestore
-    const userDocRef = doc(collection(db, "users"), userCredential.user.uid);
-    await setDoc(userDocRef, additionalData);
+    const userDocRef = doc(db, "users", userCredential.user.uid);
+    await setDoc(userDocRef, { ...additionalData, email: userCredential.user.email });
   } catch (error) {
     console.error("Error creating user:", error);
+    throw new Error("User creation failed");
   }
-};
+}
 
-// Add more functions here as necessary
-// For example, handling sign out
-const logoutUser = async () => {
-  await signOut(auth);
-  console.log('User signed out');
-};
+/**
+ * Signs out the currently signed-in user.
+ */
+async function logoutUser() {
+  try {
+    await signOut(auth);
+    console.log('User signed out successfully');
+  } catch (error) {
+    console.error("Error signing out:", error);
+    throw new Error("Sign out failed");
+  }
+}
 
-const getUsers = async () => {
+/**
+ * Fetches and returns a list of users from Firestore.
+ */
+async function getUsers() {
   try {
     const usersCol = collection(db, "users");
     const userSnapshot = await getDocs(usersCol);
-    const usersList = userSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    return usersList;
+    return userSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   } catch (error) {
     console.error("Error fetching users:", error);
     throw new Error("Failed to fetch users");
   }
-};
+}
 
-
-const getTrainings = async () => {
+/**
+ * Fetches and returns a list of trainings from Firestore.
+ */
+async function getTrainings() {
   try {
     const trainingsCol = collection(db, "trainings");
     const trainingSnapshot = await getDocs(trainingsCol);
-    const trainingsList = trainingSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    return trainingsList;
+    return trainingSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   } catch (error) {
     console.error("Error fetching trainings:", error);
     throw new Error("Failed to fetch trainings");
   }
-};
+}
+
 
 // Define updateUserRole function
 const updateUserRole = async (userId, newRole) => {
