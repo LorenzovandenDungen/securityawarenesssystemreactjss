@@ -1,33 +1,81 @@
+/* src/Login.css */
+
+body, html {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: 'Arial', sans-serif;
+}
+
 .login {
-    height: 100vh;
-    width: 100vw;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .login__container {
-    display: flex;
-    flex-direction: column;
-    text-align: center;
-    background-color: #dcdcdc;
-    padding: 30px;
-  }
-  .login__textBox {
-    padding: 10px;
-    font-size: 18px;
-    margin-bottom: 10px;
-  }
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background-color: #f4f4f4; /* Adjust the background color as needed */
+}
+
+.login__container {
+  text-align: center;
+  margin-top: -100px; /* Adjust to position your container as in the design */
+}
+
+.login__header {
+  margin-bottom: 40px; /* Adjust space between header and buttons */
+}
+
+.login__role {
+  margin-bottom: 15px;
+}
+
+.login__role h2 {
+  font-size: 1em;
+  margin-bottom: 5px;
+}
+
+.login__role p {
+  font-size: 0.8em;
+  margin-bottom: 10px;
+}
+
+.login__btn {
+  padding: 10px 60px;
+  font-size: 1em;
+  border: none;
+  border-radius: 20px; /* Rounded corners */
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2); /* Shadow for depth */
+  text-transform: uppercase; /* Capitalize text */
+  margin: 0 10px; /* Space between buttons */
+}
+
+/* Colors for each role button */
+.admin {
+  background-color: #007BFF;
+}
+
+.employee {
+  background-color: #28A745;
+}
+
+.company {
+  background-color: #FFC107;
+}
+
+/* Hover effects for buttons */
+.login__btn:hover {
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
   .login__btn {
-    padding: 10px;
-    font-size: 18px;
-    margin-bottom: 10px;
-    border: none;
-    color: white;
-    background-color: black;
+    padding: 10px 20px;
+    font-size: 0.9em;
   }
-  .login__google {
-    background-color: #4285f4;
-  }
-  .login div {
-    margin-top: 7px;
-  }
+}
+
+/* Further responsive adjustments can be added here */
