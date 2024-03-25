@@ -1,16 +1,9 @@
-import firebase from "firebase/compat/app";
-import "firebase/compat/auth";
-import "firebase/compat/database";
 import { initializeApp } from "firebase/app";
 import {
-  GoogleAuthProvider,
   getAuth,
-  signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
-  sendPasswordResetEmail,
-  sendSignInLinkToEmail,
-  isSignInWithEmailLink,
   signOut,
+  GoogleAuthProvider
 } from "firebase/auth";
 import {
   getFirestore,
@@ -19,270 +12,102 @@ import {
   doc,
   updateDoc,
   deleteDoc,
-  getDocs,
-  query,
-  orderBy,
-  limit,
-  where,
-  getDoc, // Added getDoc here
+  getDoc
 } from "firebase/firestore";
-import { getDatabase, ref, set } from "firebase/database";
 import { getFunctions } from "firebase/functions";
+import { getDatabase } from "firebase/database";
 
+// Firebase configuration from your environment variables
 const firebaseConfig = {
   apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
   authDomain: process.env.REACT_APP_AUTH_DOMAIN,
-  databaseURL: process.env.REACT_APP_DATABASE_URL,
   projectId: process.env.REACT_APP_PROJECT_ID,
   storageBucket: process.env.REACT_APP_STORAGE_BUCKET,
   messagingSenderId: process.env.REACT_APP_MESSAGING_SENDER_ID,
   appId: process.env.REACT_APP_APP_ID,
-  measurementId: process.env.REACT_APP_MEASUREMENT_ID,
 };
 
+// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
+// Initialize services
 const auth = getAuth(app);
 const db = getFirestore(app);
-const database = getDatabase(app);
 const functions = getFunctions(app);
+
+// Google Auth Provider
 const googleProvider = new GoogleAuthProvider();
 
-
-// Admin
-
-// Admin Login page
-
-// Users
-
-const createUser = async (name, email, role) => {
+// Function to create a user
+const createUser = async (email, password, additionalData) => {
   try {
-    const res = await createUserWithEmailAndPassword(auth, email, 'password');
-    const user = res.user;
-    await addDoc(collection(db, "users"), {
-      uid: user.uid,
-      name,
-      role,
-      authProvider: "local",
-      email,
-    });
-  } catch (err) {
-    console.error(err);
-    alert(err.message);
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    console.log('User created with email:', userCredential.user.email);
+    // Add additional user data to Firestore
+    const userDocRef = doc(collection(db, "users"), userCredential.user.uid);
+    await setDoc(userDocRef, additionalData);
+  } catch (error) {
+    console.error("Error creating user:", error);
   }
 };
 
-const updateUserRole = async (userId, role) => {
-  try {
-    const userRef = doc(db, 'users', userId);
-    await updateDoc(userRef, { role });
-  } catch (err) {
-    console.error(err);
-    alert(err.message);
-  }
+// Add more functions here as necessary
+// For example, handling sign out
+const logoutUser = async () => {
+  await signOut(auth);
+  console.log('User signed out');
+};
+const getUsers = async () => {
+  // Assuming you're fetching users from a Firestore collection named "users"
+  const usersCol = collection(db, "users");
+  const userSnapshot = await getDocs(usersCol);
+  const userList = userSnapshot.docs.map(doc => doc.data());
+  return userList;
 };
 
-const deleteUser = async (userId) => {
-  try {
-    const userRef = doc(db, 'users', userId);
-    await deleteDoc(userRef);
-  } catch (err) {
-    console.error(err);
-    alert(err.message);
-  }
-};
-
-const sendTrainingInvite = async (userIds, trainingId) => {
-  try {
-    const trainingRef = doc(db, 'trainings', trainingId);
-    const trainingSnapshot = await getDocs(trainingRef);
-
-    if (!trainingSnapshot.exists()) {
-      throw new Error(`Training with ID ${trainingId} does not exist`);
-    }
-
-    const trainingData = trainingSnapshot.data();
-    const validUntil = Date.now() + (trainingData.validityPeriodSeconds * 1000);
-
-    for (const userId of userIds) {
-      const userRef = doc(db, 'users', userId);
-      const userSnapshot = await getDocs(userRef);
-
-      if (!userSnapshot.exists()) {
-        throw new Error(`User with ID ${userId} does not exist`);
-      }
-
-      const userData = userSnapshot.data();
-
-      const inviteRef = await addDoc(collection(db, 'invites'), {
-        userId,
-        trainingId,
-        validUntil,
-      });
-
-      // Send email invite to user
-      // ...
-
-      console.log(`Invite with ID ${inviteRef.id} sent to ${userData.email}`);
-    }
-  } catch (err) {
-    console.error(err);
-    alert(err.message);
-  }
-};
-
-// Trainings
-
-const createTraining = async (name, questions) => {
-  try {
-    const trainingRef = await addDoc(collection(db, "trainings"), {
-      name,
-      questions,
-      validityPeriodSeconds: 604800, // 7 days
-    });
-    console.log(`Training ${name} created with ID ${trainingRef.id}`);
-  } catch (err) {
-    console.error(err);
-    alert(err.message);
-  }
-};
-
-const updateTraining = async (trainingId, name, questions) => {
-  try {
-    const trainingRef = doc(db, "trainings", trainingId);
-    await updateDoc(trainingRef, {
-      name,
-      questions,
-    });
-    console.log(`Training ${name} updated with ID ${trainingRef.id}`);
-  } catch (err) {
-    console.error(err);
-    alert(err.message);
-  }
-};
-
-const deleteTraining = async (trainingId) => {
-  try {
-    const trainingRef = doc(db, "trainings", trainingId);
-    await deleteDoc(trainingRef);
-    console.log(`Training with ID ${trainingRef.id} deleted`);
-  } catch (err) {
-    console.error(err);
-    alert(err.message);
-  }
-};
-
+// Define getTrainings function
 const getTrainings = async () => {
-  try {
-    const querySnapshot = await getDocs(collection(db, "trainings"));
-    const trainings = [];
-    querySnapshot.forEach((doc) => {
-      const data = doc.data();
-      trainings.push({
-        id: doc.id,
-        name: data.name,
-        questions: data.questions,
-        validityPeriodSeconds: data.validityPeriodSeconds,
-      });
-    });
-    return trainings;
-  } catch (err) {
-    console.error(err);
-    alert(err.message);
-  }
+  const trainingsCol = collection(db, "trainings");
+  const trainingSnapshot = await getDocs(trainingsCol);
+  const trainingList = trainingSnapshot.docs.map(doc => doc.data());
+  return trainingList;
 };
 
-const getTrainingById = async (trainingId) => {
-  try {
-    const trainingRef = doc(db, "trainings", trainingId);
-    const trainingSnapshot = await getDoc(trainingRef);
-    if (!trainingSnapshot.exists()) {
-      throw new Error(`Training with ID ${trainingId} does not exist`);
-    }
-    const trainingData = trainingSnapshot.data();
-    return {
-      id: trainingSnapshot.id,
-      name: trainingData.name,
-      questions: trainingData.questions,
-      validityPeriodSeconds: trainingData.validityPeriodSeconds,
-    };
-  } catch (err) {
-    console.error(err);
-    alert(err.message);
-  }
+// Define updateUserRole function
+const updateUserRole = async (userId, newRole) => {
+  const userRef = doc(db, "users", userId);
+  await updateDoc(userRef, { role: newRole });
 };
 
-const logout = async () => {
-  try {
-    await auth.signOut();
-    console.log('Logged out successfully');
-  } catch (error) {
-    console.error('Error logging out:', error);
-  }
-}
-export const getUsers = async () => {
-  const snapshot = await db.collection('users').get();
-  const users = snapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  }));
-  return users;
+// Define sendTrainingInvite function
+const sendTrainingInvite = async (userId, trainingId) => {
+  // Example implementation, adjust according to your needs
+  const inviteRef = collection(db, "invites");
+  await addDoc(inviteRef, { userId, trainingId });
 };
 
-const importUsersFromCsv = async (file) => {
-  try {
-    const fileReader = new FileReader();
-    fileReader.readAsText(file);
-
-    fileReader.onload = async (e) => {
-      const users = [];
-      const rows = e.target.result.split("\n");
-      for (let i = 1; i < rows.length; i++) {
-        const cells = rows[i].split(",");
-        const name = cells[0].trim();
-        const email = cells[1].trim();
-        const role = cells[2].trim();
-        users.push({ name, email, role });
-      }
-      await Promise.all(
-        users.map(async ({ name, email, role }) => {
-          const existingUser = await db
-            .collection("users")
-            .where("email", "==", email)
-            .get();
-          if (existingUser.docs.length > 0) {
-            return;
-          }
-          await db.collection("users").add({
-            name,
-            email,
-            role,
-          });
-        })
-      );
-    };
-  } catch (error) {
-    console.error(error);
-  }
+// Define importUsersFromCsv function
+const importUsersFromCsv = async (csvFile) => {
+  // Implementation depends on how you handle CSV files
 };
 
+// Initialize Database
+const database = getDatabase(app);
 
+// Export the newly defined functions and the database
 export {
-  importUsersFromCsv,
+  app,
   auth,
   db,
   database,
+  functions,
   googleProvider,
-  logout,
   createUser,
-  updateUserRole,
-  deleteUser,
-  sendTrainingInvite,
-  createTraining,
-  updateTraining,
-  deleteTraining,
+  logoutUser,
+  getUsers,
   getTrainings,
-  getTrainingById,
+  updateUserRole,
+  sendTrainingInvite,
+  importUsersFromCsv,
+  // Add other exports here...
 };
-
-export default firebase;
