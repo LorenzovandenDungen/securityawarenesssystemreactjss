@@ -1,14 +1,11 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { auth } from "./firebase";
-import { useAuthState } from "react-firebase-hooks/auth";
+import { useNavigate } from "react-router-dom";
 import "./Login.css";
 
 function Login() {
   const [role, setRole] = useState("Company");
   const [inviteCode, setInviteCode] = useState("");
-  const [isCodeActivated, setIsCodeActivated] = useState(false); // new state variable
-  const [user, loading, error] = useAuthState(auth);
+  const [isCodeActivated, setIsCodeActivated] = useState(false);
   const navigate = useNavigate();
 
   const handleLogin = () => {
@@ -20,9 +17,14 @@ function Login() {
   };
 
   const handleInviteCode = () => {
-    // Check if invite code is valid and activate it if so
-    // Display message with deadline for training
-    setIsCodeActivated(true); // set isCodeActivated state to true
+    // Placeholder for invite code validation logic
+    // This is where you'd check if the invite code is valid
+    // For demonstration, we'll assume any input activates the code
+    if (inviteCode.trim() !== "") {
+      setIsCodeActivated(true);
+    } else {
+      setIsCodeActivated(false); // Keep button disabled if no code is entered
+    }
   };
 
   return (
