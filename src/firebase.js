@@ -24,6 +24,7 @@ import {
   orderBy,
   limit,
   where,
+  getDoc, // Added getDoc here
 } from "firebase/firestore";
 import { getDatabase, ref, set } from "firebase/database";
 import { getFunctions } from "firebase/functions";
