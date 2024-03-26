@@ -42,15 +42,27 @@ const googleProvider = new GoogleAuthProvider();
 /**
  * Creates a new user with email and password and stores additional user data in Firestore.
  */
-async function createUser(email, password, additionalData = {}) {
+  async function createUser(email, password, role) {
   try {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    console.log('User created with email:', userCredential.user.email);
-    const userDocRef = doc(db, "users", userCredential.user.uid);
-    await setDoc(userDocRef, { ...additionalData, email: userCredential.user.email });
+    await setDoc(doc(db, 'users', userCredential.user.uid), {
+      email,
+      role,
+    });
+    console.log('User created:', userCredential.user.uid);
   } catch (error) {
-    console.error("Error creating user:", error);
-    throw new Error("User creation failed");
+    console.error('Error creating user:', error);
+    if (error.code === 'auth/email-already-in-use') {
+      throw new Error('The email address is already in use by another account.');
+    } else if (error.code === 'auth/invalid-email') {
+      throw new Error('The email address is invalid.');
+    } else if (error.code === 'auth/operation-not-allowed') {
+      throw new Error('Email/password accounts are not enabled.');
+    } else if (error.code === 'auth/weak-password') {
+      throw new Error('The password is too weak.');
+    } else {
+      throw new Error('An unexpected error occurred.');
+    }
   }
 }
 
