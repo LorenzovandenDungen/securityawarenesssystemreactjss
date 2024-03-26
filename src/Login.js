@@ -1,5 +1,6 @@
 import React from "react";
 import "./Login.css";
+import WebSecLogo from "./Websec.png"; // Path needs to be set correctly
 
 function Login() {
   // Add your login logic here for each role
@@ -8,6 +9,7 @@ function Login() {
     <div className="login">
       <div className="login__container">
         <h1>Welcome to the Security Awareness System</h1>
+        <img src={WebSecLogo} alt="WebSec Logo" className="login__logo" /> {/* This line will insert the logo */}
         <p>Please log in:</p>
         <div className="login__role">
           <h2>Admin</h2>
